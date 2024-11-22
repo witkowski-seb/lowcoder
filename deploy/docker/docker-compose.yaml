@@ -19,7 +19,7 @@ services:
   lowcoder-api-service:
     image: lowcoderorg/lowcoder-ce-api-service:latest
     environment:
-      LOWCODER_PUBLIC_URL: ${APP_URL}
+      LOWCODER_PUBLIC_URL: "http://localhost:3000/"
       LOWCODER_PUID: "9001"
       LOWCODER_PGID: "9001"
       LOWCODER_MONGODB_URL: "mongodb://lowcoder:${MONGODB_PASSWORD}@mongodb/lowcoder?authSource=admin"
@@ -74,7 +74,7 @@ services:
   lowcoder-frontend:
     image: lowcoderorg/lowcoder-ce-frontend:latest
     ports:
-      - "${PORT:-3000}:3000"
+      - "443:3000"
     environment:
       LOWCODER_PUID: "9001"
       LOWCODER_PGID: "9001"
@@ -82,6 +82,9 @@ services:
       LOWCODER_MAX_QUERY_TIMEOUT: 120
       LOWCODER_API_SERVICE_URL: "http://lowcoder-api-service:8080"
       LOWCODER_NODE_SERVICE_URL: "http://lowcoder-node-service:6060"
+    labels:
+      coolify.enable.traefik: true
+      coolify.enable.https: true
     restart: unless-stopped
     depends_on:
       - lowcoder-node-service
