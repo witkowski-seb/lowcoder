@@ -1,98 +1,53 @@
 version: "3"
 services:
-  mongodb:
-    image: "mongo:7.0"
-    environment:
-      MONGO_INITDB_DATABASE: lowcoder
-      MONGO_INITDB_ROOT_USERNAME: lowcoder
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
-    volumes:
-      - mongodb_data:/data/db
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    volumes:
-      - redis_data:/data
-
   lowcoder-api-service:
-    image: lowcoderorg/lowcoder-ce-api-service:latest
+    image: lowcoderorg/lowcoder-ce:latest
+    container_name: lowcoder
+    ports:
+      - "3000:3000"
+      - "3443:3443"
     environment:
       LOWCODER_PUBLIC_URL: "http://localhost:3000/"
-      LOWCODER_PUID: "9001"
-      LOWCODER_PGID: "9001"
-      LOWCODER_MONGODB_URL: "mongodb://lowcoder:${MONGODB_PASSWORD}@mongodb/lowcoder?authSource=admin"
-      LOWCODER_REDIS_URL: "redis://redis:6379"
-      LOWCODER_NODE_SERVICE_URL: "http://lowcoder-node-service:6060"
-      LOWCODER_MAX_QUERY_TIMEOUT: 120
-      LOWCODER_MAX_REQUEST_SIZE: 20m
-      LOWCODER_EMAIL_AUTH_ENABLED: ${EMAIL_AUTH_ENABLED:-true}
-      LOWCODER_EMAIL_SIGNUP_ENABLED: ${EMAIL_SIGNUP_ENABLED:-true}
-      LOWCODER_CREATE_WORKSPACE_ON_SIGNUP: ${CREATE_WORKSPACE_ON_SIGNUP:-true}
-      LOWCODER_DB_ENCRYPTION_PASSWORD: ${DB_ENCRYPTION_PASSWORD}
-      LOWCODER_DB_ENCRYPTION_SALT: ${DB_ENCRYPTION_SALT}
-      LOWCODER_CORS_DOMAINS: "*"
+      LOWCODER_REDIS_ENABLED: "true"
+      LOWCODER_MONGODB_ENABLED: "true"
+      LOWCODER_MONGODB_EXPOSED: "false"
+      LOWCODER_API_SERVICE_ENABLED: "true"
+      LOWCODER_NODE_SERVICE_ENABLED: "true"
+      LOWCODER_FRONTEND_ENABLED: "true"
+      LOWCODER_PUID: "1000"
+      LOWCODER_PGID: "1000"
       LOWCODER_MAX_ORGS_PER_USER: 100
       LOWCODER_MAX_MEMBERS_PER_ORG: 1000
       LOWCODER_MAX_GROUPS_PER_ORG: 100
       LOWCODER_MAX_APPS_PER_ORG: 1000
       LOWCODER_MAX_DEVELOPERS: 50
-      LOWCODER_API_KEY_SECRET: ${API_KEY_SECRET}
+      LOWCODER_MONGODB_URL: "mongodb://localhost:27017/lowcoder?authSource=admin"
+      LOWCODER_REDIS_URL: "redis://localhost:6379"
+      LOWCODER_EMAIL_SIGNUP_ENABLED: "true"
+      LOWCODER_EMAIL_AUTH_ENABLED: "true"
+      LOWCODER_CREATE_WORKSPACE_ON_SIGNUP: "true"
+      LOWCODER_DB_ENCRYPTION_PASSWORD: "lowcoder.org"
+      LOWCODER_DB_ENCRYPTION_SALT: "lowcoder.org"
+      LOWCODER_CORS_DOMAINS: "*"
+      LOWCODER_API_KEY_SECRET: "5a41b090758b39b226603177ef48d73ae9839dd458ccb7e66f7e7cc028d5a50b"
       LOWCODER_PLUGINS_DIR: "../plugins"
       LOWCODER_API_RATE_LIMIT: 50
-      LOWCODER_WORKSPACE_MODE: SAAS
-      LOWCODER_MARKETPLACE_PRIVATE_MODE: "true"
-      LOWCODER_ADMIN_SMTP_HOST: ${SMTP_HOST}
-      LOWCODER_ADMIN_SMTP_PORT: ${SMTP_PORT:-587}
-      LOWCODER_ADMIN_SMTP_USERNAME: ${SMTP_USERNAME}
-      LOWCODER_ADMIN_SMTP_PASSWORD: ${SMTP_PASSWORD}
-      LOWCODER_ADMIN_SMTP_AUTH: ${SMTP_AUTH:-true}
-      LOWCODER_ADMIN_SMTP_SSL_ENABLED: ${SMTP_SSL:-false}
-      LOWCODER_ADMIN_SMTP_STARTTLS_ENABLED: ${SMTP_STARTTLS:-true}
-      LOWCODER_ADMIN_SMTP_STARTTLS_REQUIRED: ${SMTP_STARTTLS_REQUIRED:-true}
-      LOWCODER_EMAIL_NOTIFICATIONS_SENDER: ${EMAIL_SENDER:-info@localhost}
-      LOWCODER_SUPERUSER_USERNAME: ${ADMIN_EMAIL:-admin@localhost}
-      LOWCODER_SUPERUSER_PASSWORD: ${ADMIN_PASSWORD}
-    restart: unless-stopped
-    depends_on:
-      - mongodb
-      - redis
-    volumes:
-      - lowcoder_assets:/lowcoder/assets
-
-  lowcoder-node-service:
-    image: lowcoderorg/lowcoder-ce-node-service:latest
-    environment:
-      LOWCODER_PUID: "9001"
-      LOWCODER_PGID: "9001"
-      LOWCODER_API_SERVICE_URL: "http://lowcoder-api-service:8080"
-    restart: unless-stopped
-    depends_on:
-      - lowcoder-api-service
-
-  lowcoder-frontend:
-    image: lowcoderorg/lowcoder-ce-frontend:latest
-    ports:
-      - "443:3000"
-    environment:
-      LOWCODER_PUID: "9001"
-      LOWCODER_PGID: "9001"
+      LOWCODER_API_SERVICE_URL: "http://localhost:8080"
+      LOWCODER_NODE_SERVICE_URL: "http://localhost:6060"
       LOWCODER_MAX_REQUEST_SIZE: 20m
       LOWCODER_MAX_QUERY_TIMEOUT: 120
-      LOWCODER_API_SERVICE_URL: "http://lowcoder-api-service:8080"
-      LOWCODER_NODE_SERVICE_URL: "http://lowcoder-node-service:6060"
-    labels:
-      coolify.enable.traefik: true
-      coolify.enable.https: true
-    restart: unless-stopped
-    depends_on:
-      - lowcoder-node-service
-      - lowcoder-api-service
+      LOWCODER_WORKSPACE_MODE: SAAS
+      LOWCODER_MARKETPLACE_PRIVATE_MODE: "true"
+      LOWCODER_ADMIN_SMTP_HOST: localhost
+      LOWCODER_ADMIN_SMTP_PORT: 587
+      LOWCODER_ADMIN_SMTP_AUTH: "true"
+      LOWCODER_ADMIN_SMTP_SSL_ENABLED: "false"
+      LOWCODER_ADMIN_SMTP_STARTTLS_ENABLED: "true"
+      LOWCODER_ADMIN_SMTP_STARTTLS_REQUIRED: "true"
+      LOWCODER_EMAIL_NOTIFICATIONS_SENDER: info@localhost
+      LOWCODER_SUPERUSER_USERNAME: admin@localhost
+      LOWCODER_SUPERUSER_PASSWORD:
     volumes:
-      - lowcoder_assets:/lowcoder/assets
-
-volumes:
-  mongodb_data:
-  redis_data:
-  lowcoder_assets:
+      - ./lowcoder-stacks:/lowcoder-stacks
+      - ./lowcoder-stacks/assets:/lowcoder/assets
+    restart: unless-stopped
